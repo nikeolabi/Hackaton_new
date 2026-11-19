@@ -1,0 +1,72 @@
+{
+  "mapping_version": "0.1.0",
+  "source_patterns": {
+    "medications": "^medlist[0-9]*$",
+    "care_documents": "^vardokument[0-9]*$",
+    "laboratory": "^kemlab[0-9]*$"
+  },
+  "medication": {
+    "drug_list": "drugs.drug",
+    "name": "preparation_text",
+    "atc": "atc_code",
+    "strength": "strength",
+    "strength_unit": "strength_unit",
+    "dose_form": "dose_form",
+    "prescription": "prescription",
+    "treatment_reason": "treatment_reason",
+    "start": "first_dose_date",
+    "end": "last_dose_date",
+    "instructions": "days.day",
+    "instruction_text": "dosage_instruction"
+  },
+  "care": {
+    "keywords": "keywords",
+    "name": "name",
+    "values": "values",
+    "value": "value",
+    "event_date": "event_date_time",
+    "diagnosis_labels": ["Diagnos enl ICD-10"],
+    "procedure_labels": ["Operations- åtgärdskod"],
+    "procedure_date_labels": ["Operationsdatum"],
+    "plan_labels": ["Åtgärd/planering", "Postoperativ planering", "Rekommenderade åtgärder vid lågt PK-INR", "Åtgärd tobak", "Åtgärd matvanor"]
+  },
+  "laboratory": {
+    "samples": "sourceData.samples",
+    "analyses": "analyses",
+    "name": "analysis",
+    "code": "analysisId",
+    "value": "value",
+    "unit": "unit",
+    "reference_range": "referenceArea",
+    "date": "sourceData.samplingDateTime",
+    "final": "sourceData.isFinal"
+  },
+  "terminology_systems": {
+    "atc": "http://www.whocc.no/atc",
+    "npu": "http://npu-terminology.org",
+    "snomed": "http://snomed.info/sct",
+    "loinc": "http://loinc.org",
+    "icd10_se": "https://terminologitjansten.inera.se/inera-kodverksforvaltning/kodverk/icd-10-se",
+    "kva": "http://hl7.se/fhir/ig/base/CodeSystem/sct-kvå"
+  },
+  "vital_signs": {
+    "Vikt": {"loinc": "29463-7", "display": "Body weight", "ucum": "kg", "unit": "kg"},
+    "Pulsfrekvens": {"loinc": "8867-4", "display": "Heart rate", "ucum": "/min", "unit": "beats/min"},
+    "Blodtryck systoliskt - övre": {"loinc": "8480-6", "display": "Systolic blood pressure", "ucum": "mm[Hg]", "unit": "mmHg"},
+    "Blodtryck diastoliskt - nedre": {"loinc": "8462-4", "display": "Diastolic blood pressure", "ucum": "mm[Hg]", "unit": "mmHg"}
+  },
+  "eps": {
+    "package_id": "hl7.fhir.eu.eps",
+    "version": "1.0.0-ballot",
+    "fhir_version": "4.0.1",
+    "bundle_profile": "http://hl7.eu/fhir/eps/StructureDefinition/bundle-eu-eps",
+    "composition_profile": "http://hl7.eu/fhir/eps/StructureDefinition/composition-eu-eps",
+    "patient_profile": "http://hl7.eu/fhir/eps/StructureDefinition/patient-eu-eps",
+    "medication_statement_profile": "http://hl7.eu/fhir/eps/StructureDefinition/MedicationStatement-eu-eps"
+  },
+  "ehds": {
+    "logical_model_url": "https://www.xt-ehr.eu/fhir/models/en/StructureDefinition-EHDSPatientSummary.html",
+    "model_map_url": "https://hl7.eu/fhir/eps/map-ehdspatientsummary.html"
+  },
+  "reviewed_snomed_mappings": {}
+}
