@@ -9,6 +9,7 @@ from datetime import datetime, date
 from html import escape
 from uuid import UUID, uuid5
 from zoneinfo import ZoneInfo
+from dynamic_eps.enrichment import enrich_laboratory, enrich_medication, enrich_procedure, enrich_condition
 import re
 
 NAMESPACE = UUID('a1d266b0-22bb-4c54-9d8d-28c2435024c1')
@@ -43,7 +44,7 @@ def build(canonical: dict, cfg: dict, *, vitals_as_narrative=True, document_date
     if not dt.tzinfo or dt.utcoffset() is None: raise ValueError('--document-date must include timezone')
     def rid(name): return str(uuid5(NAMESPACE, pid + ':dynamic:' + name))
     def urn(name): return 'urn:uuid:' + rid(name)
-    entries = []; fhir_paths = {}; report = []
+    entries = []; fhir_paths = {}; report = []; enrichment_report = []
     patient_ref = urn('patient'); org_ref = urn('organization')
     def add(resource, key, source=None):
         resource['id'] = rid(key)
@@ -92,6 +93,7 @@ def build(canonical: dict, cfg: dict, *, vitals_as_narrative=True, document_date
         verified_code = verified_snomed.get('ICD10SE:' + str(fact['code']))
         if verified_code:
             resource['code']['coding'].append({'system': systems['snomed'], 'code': str(verified_code)})
+        enrich_condition(resource, fact, cfg, enrichment_report)
         if fact.get('date'): resource['recordedDate'] = fact['date']
         ref = add(resource, f'condition:{i}', fact['source_path'])
         attach('Problem list', ref, f"{fact['code']} {fact['display']}")
@@ -102,6 +104,7 @@ def build(canonical: dict, cfg: dict, *, vitals_as_narrative=True, document_date
         med = {'resourceType': 'Medication',
                'meta': {'profile': ['http://hl7.eu/fhir/base/StructureDefinition/medication-eu-core']},
                'code': codeable(systems['atc'], fact.get('atc'), desc), 'text': narrative(desc)}
+        enrich_medication(med, fact, cfg, enrichment_report)
         med_ref = add(med, f'medication:{i}', fact['source_path'])
         statement = {'resourceType': 'MedicationStatement', 'meta': {'profile': [eps['medication_statement_profile']]},
                      'status': 'completed' if fact.get('end') else 'unknown',
@@ -133,6 +136,7 @@ def build(canonical: dict, cfg: dict, *, vitals_as_narrative=True, document_date
             resource['valueQuantity'] = quantity
         else:
             resource['valueString'] = str(fact['original_value'])
+        enrich_laboratory(resource, fact, cfg, enrichment_report)
         if fact.get('reference_range'): resource['referenceRange'] = [{'text': str(fact['reference_range'])}]
         ref = add(resource, f'laboratory:{i}', fact['source_path'])
         attach('Relevant diagnostic tests and laboratory data', ref,
@@ -179,6 +183,7 @@ def build(canonical: dict, cfg: dict, *, vitals_as_narrative=True, document_date
     for i, fact in enumerate(canonical['procedures']):
         resource={'resourceType':'Procedure','status':'completed','code':codeable(systems['kva'] if fact.get('code') else None,fact.get('code'),fact['description']),
                   'subject':{'reference':patient_ref}, 'text':narrative(fact['description'])}
+        enrich_procedure(resource, fact, cfg, enrichment_report)
         if fact.get('date'):resource['performedDateTime']=fact['date']
         ref=add(resource,f'procedure:{i}',fact['source_path'])
         attach('History of procedures',ref,fact['description'])
@@ -217,4 +222,4 @@ def build(canonical: dict, cfg: dict, *, vitals_as_narrative=True, document_date
     if len(known)!=len(bundle['entry']):raise ValueError('Non-unique FHIR fullUrl')
     check_refs(bundle)
     return bundle, {'resource_counts':dict(Counter(e['resource']['resourceType'] for e in bundle['entry'])),
-                    'resource_source_paths':fhir_paths, 'vitals_as_narrative':vitals_as_narrative}
+                    'resource_source_paths':fhir_paths, 'vitals_as_narrative':vitals_as_narrative, 'terminology_enrichment':enrichment_report}

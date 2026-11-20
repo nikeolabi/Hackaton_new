@@ -80,3 +80,30 @@ validate the generated Bundle with the official HL7 FHIR validator. Local
 structural checks do not establish EU EPS profile conformance. In particular,
 re-check the Bundle composition and patient slices under the exact pinned
 implementation-guide versions.
+
+## SNOMED CT / LOINC / RxNorm enrichment (v0.2)
+
+The existing source-file normalization and patient grouping are unchanged.
+`dynamic_eps/enrichment.py` adds **reviewed, exact** codes alongside source codes during FHIR generation.
+`config/mappings.json` defines `terminology_enrichment`:
+
+- `laboratory_exact`: keys `Swedish test name|original unit`; matches append LOINC and, if the UCUM string is exactly equal, its UCUM coding. Includes P-Natrium, P-Kalium, P-CRP, S-CRP and B-Hemoglobin examples. Beware assay/specimen/method-specific LOINC codes: verify against source metadata for production.
+- `medication_exact`: keys equal the **original medication name**; values specify reviewed `rxcui`, optionally `display`, `strength`, `strength_unit`, `form`. Missing RxCUI is deliberately not invented. Exact product strength/form must be verified by a human using RxNav.
+- `procedure_exact`: source KVÅ code -> reviewed `snomed` and `display`.
+- `condition_icd10_exact`: source ICD-10-SE code -> reviewed `snomed` and `display`. ICD-10 to SNOMED is NOT universally one-to-one; use only carefully reviewed mappings. Existing `reviewed_snomed_mappings` and optional Snowstorm checks still operate separately.
+
+Example configuration (replace these demonstrative values **after clinical terminology review**):
+
+```json
+"medication_exact": {
+  "APPROVED_EXACT_SOURCE_NAME": {
+    "rxcui": "REVIEWED_RXCUI",
+    "display": "Reviewed RxNorm name",
+    "strength": "SOURCE_STRENGTH",
+    "strength_unit": "SOURCE_STRENGTH_UNIT",
+    "form": "SOURCE_FORM"
+  }
+}
+```
+
+All applied mappings appear under `fhir.terminology_enrichment` in the per-patient mapping report. This does **not** automatically validate EU EPS compliance or guarantee improved hackathon scores. Do not include raw patient names or records in external terminology requests.

@@ -1,5 +1,5 @@
 {
-  "mapping_version": "0.1.0",
+  "mapping_version": "0.3.0",
   "source_patterns": {
     "medications": "^medlist[0-9]*$",
     "care_documents": "^vardokument[0-9]*$",
@@ -25,10 +25,22 @@
     "values": "values",
     "value": "value",
     "event_date": "event_date_time",
-    "diagnosis_labels": ["Diagnos enl ICD-10"],
-    "procedure_labels": ["Operations- åtgärdskod"],
-    "procedure_date_labels": ["Operationsdatum"],
-    "plan_labels": ["Åtgärd/planering", "Postoperativ planering", "Rekommenderade åtgärder vid lågt PK-INR", "Åtgärd tobak", "Åtgärd matvanor"]
+    "diagnosis_labels": [
+      "Diagnos enl ICD-10"
+    ],
+    "procedure_labels": [
+      "Operations- åtgärdskod"
+    ],
+    "procedure_date_labels": [
+      "Operationsdatum"
+    ],
+    "plan_labels": [
+      "Åtgärd/planering",
+      "Postoperativ planering",
+      "Rekommenderade åtgärder vid lågt PK-INR",
+      "Åtgärd tobak",
+      "Åtgärd matvanor"
+    ]
   },
   "laboratory": {
     "samples": "sourceData.samples",
@@ -50,10 +62,30 @@
     "kva": "http://hl7.se/fhir/ig/base/CodeSystem/sct-kvå"
   },
   "vital_signs": {
-    "Vikt": {"loinc": "29463-7", "display": "Body weight", "ucum": "kg", "unit": "kg"},
-    "Pulsfrekvens": {"loinc": "8867-4", "display": "Heart rate", "ucum": "/min", "unit": "beats/min"},
-    "Blodtryck systoliskt - övre": {"loinc": "8480-6", "display": "Systolic blood pressure", "ucum": "mm[Hg]", "unit": "mmHg"},
-    "Blodtryck diastoliskt - nedre": {"loinc": "8462-4", "display": "Diastolic blood pressure", "ucum": "mm[Hg]", "unit": "mmHg"}
+    "Vikt": {
+      "loinc": "29463-7",
+      "display": "Body weight",
+      "ucum": "kg",
+      "unit": "kg"
+    },
+    "Pulsfrekvens": {
+      "loinc": "8867-4",
+      "display": "Heart rate",
+      "ucum": "/min",
+      "unit": "beats/min"
+    },
+    "Blodtryck systoliskt - övre": {
+      "loinc": "8480-6",
+      "display": "Systolic blood pressure",
+      "ucum": "mm[Hg]",
+      "unit": "mmHg"
+    },
+    "Blodtryck diastoliskt - nedre": {
+      "loinc": "8462-4",
+      "display": "Diastolic blood pressure",
+      "ucum": "mm[Hg]",
+      "unit": "mmHg"
+    }
   },
   "eps": {
     "package_id": "hl7.fhir.eu.eps",
@@ -68,5 +100,145 @@
     "logical_model_url": "https://www.xt-ehr.eu/fhir/models/en/StructureDefinition-EHDSPatientSummary.html",
     "model_map_url": "https://hl7.eu/fhir/eps/map-ehdspatientsummary.html"
   },
-  "reviewed_snomed_mappings": {}
+  "reviewed_snomed_mappings": {},
+  "terminology_enrichment": {
+    "description": "Exact-match terminology candidate map for Swedish synthetic/hackathon data. Preserve source codes; review against lab assay, national terminology release, and medication product data before clinical use. No inferred treatment or medication status.",
+    "laboratory_exact": {
+      "P-Natrium|mmol/L": {
+        "loinc": "2951-2",
+        "display": "Sodium [Moles/volume] in Serum or Plasma",
+        "ucum": "mmol/L"
+      },
+      "P-Kalium|mmol/L": {
+        "loinc": "2823-3",
+        "display": "Potassium [Moles/volume] in Serum or Plasma",
+        "ucum": "mmol/L"
+      },
+      "P-CRP|mg/L": {
+        "loinc": "1988-5",
+        "display": "C reactive protein [Mass/volume] in Serum or Plasma",
+        "ucum": "mg/L"
+      },
+      "S-CRP|mg/L": {
+        "loinc": "1988-5",
+        "display": "C reactive protein [Mass/volume] in Serum or Plasma",
+        "ucum": "mg/L"
+      },
+      "B-Hemoglobin|g/L": {
+        "loinc": "718-7",
+        "display": "Hemoglobin [Mass/volume] in Blood",
+        "ucum": "g/L"
+      },
+      "P-Glukos|mmol/L": {
+        "loinc": "14749-6",
+        "display": "Glucose [Moles/volume] in Serum or Plasma",
+        "ucum": "mmol/L"
+      },
+      "P-Calcium|mmol/L": {
+        "loinc": "2000-8",
+        "display": "Calcium [Moles/volume] in Serum or Plasma",
+        "ucum": "mmol/L"
+      },
+      "P-Albumin|g/L": {
+        "loinc": "1751-7",
+        "display": "Albumin [Mass/volume] in Serum or Plasma",
+        "ucum": "g/L"
+      },
+      "S-Albumin|g/L": {
+        "loinc": "1751-7",
+        "display": "Albumin [Mass/volume] in Serum or Plasma",
+        "ucum": "g/L"
+      },
+      "P-Bilirubin|mikromol/L": {
+        "loinc": "14631-6",
+        "display": "Bilirubin.total [Moles/volume] in Serum or Plasma"
+      },
+      "P-Kreatinin|mikromol/L": {
+        "loinc": "14682-9",
+        "display": "Creatinine [Moles/volume] in Serum or Plasma"
+      },
+      "P-Järn|mikromol/L": {
+        "loinc": "14798-3",
+        "display": "Iron [Moles/volume] in Serum or Plasma"
+      },
+      "B-HbA1c (IFCC)|mmol/mol": {
+        "loinc": "59261-8",
+        "display": "Hemoglobin A1c/Hemoglobin.total standardized per IFCC-RMP for CDT in Blood",
+        "ucum": "mmol/mol"
+      },
+      "B-Leukocyter|x10(9)/L": {
+        "loinc": "6690-2",
+        "display": "Leukocytes [#/volume] in Blood by Automated count"
+      },
+      "B-Erytrocyter|x10(12)/L": {
+        "loinc": "789-8",
+        "display": "Erythrocytes [#/volume] in Blood by Automated count"
+      },
+      "B-Trombocyter|x10(9)/L": {
+        "loinc": "777-3",
+        "display": "Platelets [#/volume] in Blood by Automated count"
+      },
+      "Erc(B)-MCV|fL": {
+        "loinc": "787-2",
+        "display": "MCV [Entitic mean volume] in Red Blood Cells by Automated count",
+        "ucum": "fL"
+      },
+      "Erc(B)-MCH|pg": {
+        "loinc": "785-6",
+        "display": "MCH [Entitic mass] by Automated count",
+        "ucum": "pg"
+      },
+      "P-Kolesterol|mmol/L": {
+        "loinc": "14647-2",
+        "display": "Cholesterol [Moles/volume] in Serum or Plasma",
+        "ucum": "mmol/L"
+      },
+      "fP-Triglycerid|mmol/L": {
+        "loinc": "14927-8",
+        "display": "Triglyceride [Moles/volume] in Serum or Plasma",
+        "ucum": "mmol/L"
+      },
+      "P-ALAT|mikrokat/L": {
+        "loinc": "1742-6",
+        "display": "Alanine aminotransferase [Enzymatic activity/volume] in Serum or Plasma"
+      },
+      "P-ASAT|mikrokat/L": {
+        "loinc": "1920-8",
+        "display": "Aspartate aminotransferase [Enzymatic activity/volume] in Serum or Plasma"
+      },
+      "P-ALP (Alk fosfatas)|mikrokat/L": {
+        "loinc": "6768-6",
+        "display": "Alkaline phosphatase [Enzymatic activity/volume] in Serum or Plasma"
+      },
+      "P-GT|mikrokat/L": {
+        "loinc": "2324-2",
+        "display": "Gamma glutamyl transferase [Enzymatic activity/volume] in Serum or Plasma"
+      }
+    },
+    "medication_exact": {},
+    "procedure_exact": {
+      "JEA01": {
+        "snomed": "6025007",
+        "display": "Laparoscopic appendectomy"
+      }
+    },
+    "condition_icd10_exact": {
+      "I109": {
+        "snomed": "59621000",
+        "display": "Essential hypertension"
+      },
+      "I495": {
+        "snomed": "36083008",
+        "display": "Sick sinus syndrome"
+      },
+      "E109": {
+        "snomed": "46635009",
+        "display": "Type 1 diabetes mellitus"
+      },
+      "I633": {
+        "snomed": "195189003",
+        "display": "Cerebral infarction due to thrombosis of cerebral arteries"
+      }
+    }
+  }
 }

@@ -54,4 +54,44 @@ class ConverterTests(unittest.TestCase):
         result=extract({'patientId':'197001010000','sources':[{'recordType':'bokningar'}]},CONFIG)
         self.assertEqual(result['unknown_sources'][0]['record_type'],'bokningar')
 
+    def test_loinc_enrichment_preserves_npu(self):
+        fact={'name':'P-Natrium','code':'NPU03429','value':139.0,'original_value':'139','unit':'mmol/L',
+              'source_path':'$.sources[0]'}
+        canonical={'patient_id':'197001010000','patient_name':'Example','conditions':[], 'medications':[],
+                   'laboratory':[fact], 'vitals':[], 'procedures':[], 'plans':[]}
+        bundle,report=build(canonical,CONFIG,document_date='2026-11-19T10:00:00+01:00')
+        obs=next(e['resource'] for e in bundle['entry'] if e['resource']['resourceType']=='Observation')
+        codings=obs['code']['coding']
+        self.assertTrue(any(c['code']=='NPU03429' for c in codings))
+        self.assertTrue(any(c['system']=='http://loinc.org' and c['code']=='2951-2' for c in codings))
+        self.assertEqual(obs['valueQuantity']['code'],'mmol/L')
+        self.assertEqual(len(report['terminology_enrichment']),1)
+
+    def test_unmatched_lab_does_not_guess_loinc(self):
+        canonical={'patient_id':'197001010000','patient_name':'Example','conditions':[], 'medications':[],
+                   'laboratory':[{'name':'P-Natrium','code':'NPU03429','value':139,'original_value':'139','unit':'foo',
+                                  'source_path':'$.sources[0]'}], 'vitals':[], 'procedures':[], 'plans':[]}
+        bundle,report=build(canonical,CONFIG,document_date='2026-11-19T10:00:00+01:00')
+        obs=next(e['resource'] for e in bundle['entry'] if e['resource']['resourceType']=='Observation')
+        self.assertFalse(any(c.get('system')=='http://loinc.org' for c in obs['code']['coding']))
+        self.assertNotIn('code',obs['valueQuantity'])
+        self.assertEqual(report['terminology_enrichment'],[])
+
+    def test_reviewed_medication_rxnorm(self):
+        import copy
+        cfg=copy.deepcopy(CONFIG)
+        cfg['terminology_enrichment']['medication_exact']={'Test pill': {'rxcui':'12345','strength':'20','form':'tablet'}}
+        canonical={'patient_id':'197001010000','patient_name':'Example','conditions':[],
+                   'medications':[{'name':'Test pill','atc':'A01AA01','strength':'20','form':'tablet',
+                                   'instructions':[],'source_path':'$.sources[0]'}],
+                   'laboratory':[], 'vitals':[], 'procedures':[], 'plans':[]}
+        bundle,report=build(canonical,cfg,document_date='2026-11-19T10:00:00+01:00')
+        med=next(e['resource'] for e in bundle['entry'] if e['resource']['resourceType']=='Medication')
+        self.assertEqual(len(med['code']['coding']),2)
+        self.assertEqual(med['code']['coding'][1]['code'],'12345')
+        canonical['medications'][0]['strength']='40'
+        bundle,report=build(canonical,cfg,document_date='2026-11-19T10:00:00+01:00')
+        med=next(e['resource'] for e in bundle['entry'] if e['resource']['resourceType']=='Medication')
+        self.assertEqual(len(med['code']['coding']),1)
+
 if __name__=='__main__':unittest.main()
