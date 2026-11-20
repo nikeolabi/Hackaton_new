@@ -57,8 +57,8 @@ The output includes normalized source records and consolidated patient JSON. Use
 ### Step 2 — convert one consolidated patient
 
 ```bash
-python3 process_patient.py ./patient_populated/patient_196607113146.json \
-  --output-dir ./output_populated
+python3 process_patient.py ./patient_<number>/patient_<number>.json \
+  --output-dir ./output
 ```
 
 `process_patient.py` reads `config/mappings.json` by default. It writes three files per patient: `<input-stem>_canonical.json`, `<input-stem>_eu_eps.json` and `<input-stem>_mapping_report.json`.
@@ -66,10 +66,10 @@ python3 process_patient.py ./patient_populated/patient_196607113146.json \
 ### Step 3 — convert all consolidated patients (macOS/Linux)
 
 ```bash
-mkdir -p ./output_populated
-for file in ./patient_populated/*.json; do
+mkdir -p ./output
+for file in ./patient/*.json; do
     [ -f "$file" ] || continue
-    python3 process_patient.py "$file" --output-dir ./output_populated
+    python3 process_patient.py "$file" --output-dir ./output
 done
 ```
 
@@ -117,8 +117,8 @@ The diagnosis dictionary uses source ICD-10-SE codes; examples currently configu
 ### Optional Snowstorm Lite
 
 ```bash
-python3 process_patient.py ./patient_populated/patient_196607113146.json \
-  --output-dir ./output_populated \
+python3 process_patient.py ./patient_<number>/patient_<number>.json \
+  --output-dir ./output \
   --snowstorm-url http://localhost:8080/fhir
 ```
 
@@ -156,7 +156,7 @@ After obtaining the official HL7 FHIR validator JAR, run:
 
 ```bash
 python3 validate_eps.py \
-  ./output_populated/patient_196607113146_eu_eps.json \
+  ./output/patient_<number>_eu_eps.json \
   --validator-jar /path/to/validator_cli.jar
 ```
 
@@ -165,8 +165,8 @@ python3 validate_eps.py \
 For optional inspection of the official machine-readable EPS package (not full validation):
 
 ```bash
-python3 process_patient.py ./patient_populated/patient_196607113146.json \
-  --output-dir ./output_populated \
+python3 process_patient.py ./patient_<number>/patient_<number>.json \
+  --output-dir ./output \
   --eps-package /path/to/hl7.fhir.eu.eps-1.0.0-ballot.tgz
 ```
 
