@@ -13,10 +13,12 @@ source_data/ (disparate XML and JSON files)
 normalizers.py + patient_grouping.py  (run by data_pipeline.py)
    │
    ▼
-consolidated patient JSON: {"patientId": ..., "sources": [...]}
+patients/patient_<id>/
+   ├── patient_<id>.json          (consolidated {"patientId": ..., "sources": [...]})
+   └── other normalized source files belonging to that patient
    │
    ▼
-process_patient.py
+process_patient.py (reads only the consolidated patient_<id>.json)
    ├── dynamic_eps/canonical.py     → canonical clinical facts
    ├── dynamic_eps/fhir.py          → FHIR R4 EU EPS candidate Bundle
    ├── dynamic_eps/enrichment.py    → configured terminology enrichment
@@ -24,9 +26,9 @@ process_patient.py
    └── dynamic_eps/standards.py     → optional EPS package inspection
    │
    ▼
-<patient>_canonical.json
-<patient>_eu_eps.json
-<patient>_mapping_report.json
+output/patient_<id>_canonical.json
+output/patient_<id>_eu_eps.json
+output/patient_<id>_mapping_report.json
 ```
 
 **The original normalization and grouping code has not been replaced.** `data_pipeline.py` and `process_patient.py` are currently two separate steps; there is no implemented `--generate-fhir` option on `data_pipeline.py`.
@@ -48,26 +50,26 @@ Run this when source XML/JSON records have been added or changed, or when you ch
 ```bash
 python3 data_pipeline.py \
   --input-directory ./source_data \
-  --output-directory ./normalized_source \
+  --output-directory . \
   --overwrite
 ```
 
-The output includes normalized source records and consolidated patient JSON. Use the consolidated patient files—not the individual XML/JSON source files—as input to `process_patient.py`.
+With `--output-directory .` executed from the project root, the output includes `normalized_records/` and `patients/patient_<id>/`. Each patient folder contains the consolidated `patient_<id>.json` **and** all normalized source records assigned to that patient. Only the consolidated file is passed to `process_patient.py`. If you already have these folders, do not rerun normalization just to regenerate EPS Bundles.
 
 ### Step 2 — convert one consolidated patient
 
 ```bash
-python3 process_patient.py ./patient_<number>/patient_<number>.json \
-  --output-dir ./output
+python3 process_patient.py ./patient_populated/patient_196607113146.json \
+  --output-dir ./output_populated
 ```
 
-`process_patient.py` reads `config/mappings.json` by default. It writes three files per patient: `<input-stem>_canonical.json`, `<input-stem>_eu_eps.json` and `<input-stem>_mapping_report.json`.
+`process_patient.py` reads `config/mappings.json` by default. It writes three files to `output/` per patient: `<input-stem>_canonical.json`, `<input-stem>_eu_eps.json` and `<input-stem>_mapping_report.json`.
 
 ### Step 3 — convert all consolidated patients (macOS/Linux)
 
 ```bash
-mkdir -p ./output
-for file in ./patient/*.json; do
+mkdir -p ./output_populated
+for file in ./patient_populated/*.json; do
     [ -f "$file" ] || continue
     python3 process_patient.py "$file" --output-dir ./output
 done
@@ -117,8 +119,8 @@ The diagnosis dictionary uses source ICD-10-SE codes; examples currently configu
 ### Optional Snowstorm Lite
 
 ```bash
-python3 process_patient.py ./patient_<number>/patient_<number>.json \
-  --output-dir ./output \
+python3 process_patient.py ./patient_populated/patient_196607113146.json \
+  --output-dir ./output_populated \
   --snowstorm-url http://localhost:8080/fhir
 ```
 
@@ -156,7 +158,7 @@ After obtaining the official HL7 FHIR validator JAR, run:
 
 ```bash
 python3 validate_eps.py \
-  ./output/patient_<number>_eu_eps.json \
+  ./output_populated/patient_196607113146_eu_eps.json \
   --validator-jar /path/to/validator_cli.jar
 ```
 
@@ -165,8 +167,8 @@ python3 validate_eps.py \
 For optional inspection of the official machine-readable EPS package (not full validation):
 
 ```bash
-python3 process_patient.py ./patient_<number>/patient_<number>.json \
-  --output-dir ./output \
+python3 process_patient.py ./patient_populated/patient_196607113146.json \
+  --output-dir ./output_populated \
   --eps-package /path/to/hl7.fhir.eu.eps-1.0.0-ballot.tgz
 ```
 
@@ -174,6 +176,17 @@ python3 process_patient.py ./patient_<number>/patient_<number>.json \
 
 ```text
 Hackaton-main/
+├── README.md
+├── source_data/                     # Original heterogeneous XML/JSON inputs
+├── normalized_records/              # Intermediate normalized records
+├── patients/                        # Grouped patient records
+│   └── patient_<id>/
+│       ├── patient_<id>.json         # Consolidated input for FHIR conversion
+│       └── ...                       # Normalized JSON/XML-derived source records
+├── output/                          # Generated canonical, EPS and mapping report files
+│   ├── patient_<id>_canonical.json
+│   ├── patient_<id>_eu_eps.json
+│   └── patient_<id>_mapping_report.json
 ├── data_pipeline.py                  # Original normalization/grouping entry point
 ├── normalizers.py
 ├── patient_grouping.py
@@ -209,4 +222,4 @@ Generated patient Bundles can contain personal and sensitive health data. Keep s
 - [UCUM](https://unitsofmeasure.org/)
 - [Snowstorm Lite](https://github.com/IHTSDO/snowstorm-lite)
 
-**Last documentation update:** 2026-11-20. Based on `config/mappings.json` version `0.3.0` and the current converter implementation.
+**Last documentation update:** 2026-11-20. Paths reflect the `patients/patient_<id>/` source layout and `output/` FHIR output layout; mapping claims are based on configuration version `0.3.0`.
